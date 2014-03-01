@@ -2,6 +2,7 @@
 set -e
 
 CWD=$(pwd)
+ASSETDIR="assets"
 VERSION="0.3.0"
 TYPE_ARCH="linux-amd64"
 FILE_EXT=".tar.gz"
@@ -21,7 +22,7 @@ cd etcd-v${VERSION}-${TYPE_ARCH}
 mkdir -p opt/etcd
 mkdir -p etc/etcd
 cp etcd* README* opt/etcd/
-cp ../etcd.defaultconf etc/etcd/etcd.conf
+cp ${CWD}/${ASSETDIR}/etcd.defaultconf etc/etcd/etcd.conf
 
 cd ${CWD}
 fpm -s dir \
@@ -32,10 +33,10 @@ fpm -s dir \
     -p etcd-VERSION_ARCH.deb \
     --deb-user=etcd \
     --deb-group=etcd \
-    --deb-upstart=etcd \
-    --after-install=postinst.sh \
-    --before-install=preinst.sh \
-    --after-remove=postrm.sh \
-    --before-remove=prerm.sh \
+    --deb-upstart=${ASSETDIR}/etcd \
+    --after-install=${ASSETDIR}/postinst.sh \
+    --before-install=${ASSETDIR}/preinst.sh \
+    --after-remove=${ASSETDIR}/postrm.sh \
+    --before-remove=${ASSETDIR}/prerm.sh \
     --edit \
     etc/ opt/
