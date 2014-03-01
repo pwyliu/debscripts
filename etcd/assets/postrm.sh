@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # If etcd user, delete
-cat /etc/shadow | cut -d : -f 1 | grep etcd
+cat /etc/passwd | cut -d : -f 1 | grep etcd
 if [[ $? -eq 0 ]]; then
   userdel etcd || exit $?
 fi
