@@ -15,4 +15,8 @@ if [[ -e /etc/init.d/etcd  ]]; then
   rm /etc/init.d/etcd || exit $?
 fi
 
-
+# If dpkg deletes /opt like a jerk
+# http://stackoverflow.com/questions/13021002/my-deb-file-removes-opt
+if [[ ! -d /opt ]]; then
+  mkdir /opt
+fi
