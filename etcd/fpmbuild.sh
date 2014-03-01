@@ -8,22 +8,18 @@ TYPE_ARCH="linux-amd64"
 FILE_EXT=".tar.gz"
 DOWNLOAD_URL="https://github.com/coreos/etcd/releases/download/v$VERSION/etcd-v$VERSION-$TYPE_ARCH$FILE_EXT"
 
-if [[ -d etcd-v${VERSION}-${TYPE_ARCH} ]]; then
-  if [[ -e etcd-v${VERSION}-${TYPE_ARCH}${FILE_EXT} ]]; then
-    rm etcd-v${VERSION}-${TYPE_ARCH}${FILE_EXT}
-  fi
-  rm -rf etcd-v${VERSION}-${TYPE_ARCH}
-fi
-
+# Download and extract tarball
 wget ${DOWNLOAD_URL}
 tar -xvzf etcd-v${VERSION}-${TYPE_ARCH}${FILE_EXT}
 
+# Set up dirs and add default conf
 cd etcd-v${VERSION}-${TYPE_ARCH}
 mkdir -p opt/etcd
 mkdir -p etc/etcd
 cp etcd* README* opt/etcd/
 cp ${CWD}/${ASSETDIR}/etcd.defaultconf etc/etcd/etcd.conf
 
+# Engage
 cd ${CWD}
 fpm -s dir \
     -t deb \
@@ -40,3 +36,11 @@ fpm -s dir \
     --before-remove=${ASSETDIR}/prerm.sh \
     --edit \
     etc/ opt/
+
+# Clean up files
+if [[ -d etcd-v${VERSION}-${TYPE_ARCH} ]]; then
+  if [[ -e etcd-v${VERSION}-${TYPE_ARCH}${FILE_EXT} ]]; then
+    rm etcd-v${VERSION}-${TYPE_ARCH}${FILE_EXT}
+  fi
+  rm -rf etcd-v${VERSION}-${TYPE_ARCH}
+fi
