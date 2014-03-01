@@ -2,6 +2,6 @@
 set -e
 
 # shut this bitch down
-if [ -x "/etc/init/etcd" ]; then
+if [[ -f "/etc/init/etcd.conf" ]]; then
   service etcd stop || exit $?
 fi
