@@ -1,0 +1,13 @@
+#!upstart
+description "etcd daemon"
+
+setuid etcd
+setgid etcd
+
+start on started networking
+stop on shutdown
+
+respawn
+respawn limit 10 5
+
+exec  /opt/etcd/etcd
