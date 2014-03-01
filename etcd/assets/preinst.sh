@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 # If no etcd user, create one
 cat /etc/shadow | cut -d : -f 1 | grep etcd

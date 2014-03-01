@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 # If etcd user, delete
 cat /etc/shadow | cut -d : -f 1 | grep etcd
