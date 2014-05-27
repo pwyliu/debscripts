@@ -1,0 +1,27 @@
+#!upstart
+description "Red October TLS server"
+
+start on started networking
+stop on shutdown
+
+# Configure vars and set ENABLED to TRUE to run
+env ENABLED="FALSE"
+env SERVER=""
+env CERT=""
+env KEY=""
+env VAULTPATH=""
+
+pre-start script
+  if [ "$ENABLED" = "FALSE" ]; then
+    logger -is -t "$UPSTART_JOB" "ERROR: not configured. Edit Upstart conf."
+    exit 1
+  fi
+end script
+
+respawn
+respawn limit 10 5
+
+setuid redoctober
+setgid redoctober
+
+exec  /opt/redoctober/redoctober -addr $SERVER -cert $CERT -key $KEY -vaultpath=$VAULTPATH
