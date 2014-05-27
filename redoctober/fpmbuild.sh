@@ -18,7 +18,7 @@ MAINTAINER="<paul@kanetix.ca>"
 HOMEPAGE="https://github.com/cloudflare/redoctober"
 DESCRIPTION="Go server for two-man rule style file encryption and decryption."
 
-# Red October has no versions right now. For now, just use 0.0.0-kanetix$OURBUILD
+# Red October has no versions right now. Use 0.0.0-kanetix$OURBUILD temporarily.
 VERSION="0.0.0-kanetix1"
 
 # Set up dirs and download bin
