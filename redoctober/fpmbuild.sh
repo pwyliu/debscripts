@@ -8,8 +8,6 @@ README_URL="https://raw.githubusercontent.com/cloudflare/redoctober/master/READM
 ASSETDIR="assets"
 PACKAGE_NAME="redoctober"
 BUILD_DIR="build"
-USER="redoctober"
-GROUP="redoctober"
 
 # Meta
 LICENSE="BSD"
@@ -41,8 +39,6 @@ fpm -s dir \
     --url ${HOMEPAGE} \
     --vendor ${VENDOR} \
     --description "$DESCRIPTION" \
-    --deb-user=${USER} \
-    --deb-group=${GROUP} \
     --deb-upstart=${ASSETDIR}/upstart/redoctober \
     --after-install=${ASSETDIR}/postinst.sh \
     --before-install=${ASSETDIR}/preinst.sh \

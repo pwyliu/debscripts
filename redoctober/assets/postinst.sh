@@ -1,4 +1,3 @@
 #!/bin/bash
-
-# run forest run
-# service redoctober start || exit $?
+set -e
+chown -R redoctober:redoctober /opt/redoctober
