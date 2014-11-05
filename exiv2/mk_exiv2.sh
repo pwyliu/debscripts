@@ -19,7 +19,10 @@ script_deps=("build-essential" "rubygems")
 src_version="0.24"
 src_build_dir="src_build"
 src_download_url="http://www.exiv2.org/exiv2-${src_version}.tar.gz"
+
+src_tarball="exiv2-${src_version}.tar.gz"
 src_extracts_to="exiv2-${src_version}"
+
 src_deps=(
     "zlib1g-dev"
     "gettext"
@@ -37,6 +40,7 @@ package_url="http://www.exiv2.org"
 package_desc="Exiv2 is a C++ library and a command line utility to manage image metadata."
 package_epoch=0
 package_version="${src_version}-$(lsb_release --codename --short)1"
+
 package_deps=(
     "libc6 (>= 2.14)"
     "libexpat1 (>= 1.95.8)"
@@ -57,18 +61,29 @@ if [[ "$EUID" -ne 0 ]]; then
     exit
 fi
 
+# Engage
+log "Starting build"
+
 cd ${cwd}
 [[ ! -d ${logdir} ]] && mkdir -p ${logdir}
 [[ -d ${src_build_dir} ]] && rm -rf ${src_build_dir}
 [[ -d ${package_build_dir} ]] && rm -rf ${package_build_dir}
 [[ -d ${package_asset_dir} ]] || die "Asset directory not found."
 
-# Download and extract tarball
-if [[ ! -d ${src_extracts_to} ]]; then
+# Download tarball
+if [[ -f ${src_tarball} ]]; then
+    log "Found a tarball, skipping download."
+else
     log "Downloading ${src_download_url}"
     wget ${src_download_url}
-    tar -xzf vips-${src_version}.tar.gz > /dev/null
 fi
+
+# Extract tarball
+log "Extracting ${src_tarball}"
+if [[ -d ${src_extracts_to} ]]; then
+    rm -rf ${src_extracts_to}
+fi
+tar -xzf ${src_tarball} > /dev/null
 
 # Install deps
 log "Installing build dependencies"
@@ -82,7 +97,6 @@ gem install fpm --no-ri --no-rdoc --quiet
 log "Building Package"
 cd ${cwd}/${src_extracts_to}
 ./configure --prefix=${cwd}/${src_build_dir} > ${logdir}/configure.log 2>&1
-make clean > ${logdir}/makeclean.log 2>&1
 make > ${logdir}/make.log 2>&1
 make install > ${logdir}/makeinstall.log 2>&1
 
