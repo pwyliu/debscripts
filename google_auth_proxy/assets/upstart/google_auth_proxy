@@ -1,0 +1,17 @@
+#!upstart
+description "google auth proxy"
+author      "platform@500px.com"
+
+start on started network-services
+stop on stopping network-services
+
+respawn
+respawn limit 10 5
+
+console log
+
+script
+  [ -r /etc/default/google_auth_proxy ] && . /etc/default/google_auth_proxy
+  [ -r /etc/google_auth_proxy/config ] && . /etc/google_auth_proxy/config
+  exec start-stop-daemon --start --user gaproxy --chuid gaproxy --chdir /opt/google_auth_proxy --exec /opt/google_auth_proxy/google_auth_proxy -- $GAP_DAEMON_ARGS
+end script
