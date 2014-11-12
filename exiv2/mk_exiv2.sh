@@ -38,7 +38,7 @@ package_maintainer="pliu@500px.com"
 package_vendor="500px"
 package_url="http://www.exiv2.org"
 package_desc="Exiv2 is a C++ library and a command line utility to manage image metadata."
-package_epoch=0
+package_epoch=1
 package_version="${src_version}-$(lsb_release --codename --short)1"
 
 package_deps=(
