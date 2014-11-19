@@ -1,13 +1,13 @@
 # exports
-export google_auth_client_id=""
-export google_auth_secret=""
-export google_auth_cookie_secret=""
+export GOOGLE_AUTH_PROXY_CLIENT_ID="id"
+export GOOGLE_AUTH_PROXY_CLIENT_SECRET="sekrit"
+export GOOGLE_AUTH_PROXY_COOKIE_SECRET="sekrit"
+export GOOGLE_AUTH_PROXY_COOKIE_DOMAIN=".my-apps-domain.com"
 
 # vars
-google_auth_cookie_domain="internal.my-apps-domain.com"
 google_auth_apps_domain="my-apps-domain.com"
 google_auth_http_address="127.0.0.1:7001"
 google_auth_redirect_url="https://internal.my-apps-domain.com/oauth2/callback"
 google_auth_upstream="http://127.0.0.1:7002/"
 
-GAP_DAEMON_ARGS="-cookie-domain=${google_auth_cookie_domain} -google-apps-domain=${google_auth_apps_domain} -http-address=${google_auth_http_address} -redirect-url=${google_auth_redirect_url} -upstream=${google_auth_upstream}"
+GAP_DAEMON_ARGS="-google-apps-domain=${google_auth_apps_domain} -http-address=${google_auth_http_address} -redirect-url=${google_auth_redirect_url} -upstream=${google_auth_upstream}"

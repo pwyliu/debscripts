@@ -15,9 +15,9 @@ function die {
 cwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 logdir="${cwd}/logs"
 
-script_deps=("build-essential" "rubygems")
+script_deps=("build-essential" "ruby" "ruby-dev")
 
-src_version="0.1.0"
+src_version="1.0.0"
 src_build_dir="src_build"
 
 # relative to GOPATH
@@ -40,13 +40,6 @@ package_epoch=1
 package_version="${src_version}-$(lsb_release --codename --short)1"
 package_upstart_file="google_auth_proxy"
 package_default_file="google_auth_proxy"
-
-
-# TEMP - trusty isn't tested yet
-if [[ $(lsb_release --codename --short) != "precise" ]]; then
-    echo "Only supported on precise"
-    exit
-fi
 
 # Checks - this script assumes you've already got Go installed
 if [[ "$EUID" -ne 0 ]]; then 
