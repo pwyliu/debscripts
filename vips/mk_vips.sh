@@ -16,7 +16,7 @@ cwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 logdir="${cwd}/logs"
 script_deps=("build-essential" "rubygems")
 
-vips_version="7.40.10"
+vips_version="7.42.1"
 vips_build_dir="vips_build"
 vips_download_url="http://www.vips.ecs.soton.ac.uk/supported/current/vips-${vips_version}.tar.gz"
 vips_deps=(
