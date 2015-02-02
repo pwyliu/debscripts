@@ -12,26 +12,35 @@ function die {
 }
 
 function usage_and_exit {
-    printf "Usage: mk_vips -v VIPS_VERSION\n\nExample: mk_vips -v \"7.42.1\"\n"
+    printf "Usage: mk_vips -v VIPS_VERSION [-d dev]\n\nExample: mk_vips -v \"7.42.1\"\n"
     exit 2
 }
 
-# Handle args and sanity check
+# Handle args
 [[ $1 ]] || usage_and_exit
-while getopts "v:" OPTION
+while getopts "v:d:" OPTION
 do
     case ${OPTION} in
         v) vips_version=$OPTARG;;
+        d) mode=$OPTARG;;
         ?) usage_and_exit;;
     esac
 done
 [[ ${vips_version} ]] || usage_and_exit
 
-vre='^(.*[0-9])\..*([0-9])\..*([0-9])$'
+# Check valid mode
+if [[ -z ${mode} ]] || [[ ${mode} == "default" ]]; then
+    mode="default"
+elif [[ ${mode} != "dev" ]]; then
+    die "unknown mode ${mode} specified"
+fi
 
+# Check valid version
+vre='^(.*[0-9]\..*[0-9])\.(.*[0-9])$'
 [[ ${vips_version} =~ ${vre} ]] || die "VIPS version string not valid."
-[[ "$EUID" -eq 0 ]] || die "This script must be run as root."
 
+# Other checks
+[[ "$EUID" -eq 0 ]] || die "This script must be run as root."
 # TEMP - trusty isn't tested yet
 [[ $(lsb_release --codename --short) == "precise" ]] || die "This script is only supported on Ubuntu 12.04"
 
@@ -42,7 +51,7 @@ script_deps=("build-essential" "rubygems")
 script_rev="$(git log -n 1 --pretty='format:%h')"
 
 vips_build_dir="vips_build"
-vips_download_url="http://www.vips.ecs.soton.ac.uk/supported/current/vips-${vips_version}.tar.gz"
+vips_download_url="http://www.vips.ecs.soton.ac.uk/supported/${BASH_REMATCH[1]}/vips-${vips_version}.tar.gz"
 vips_deps=(
     "libxml2-dev"
     "libglib2.0-dev"
@@ -71,32 +80,66 @@ vips_deps=(
 package_build_dir="deb_src"
 package_deploy_dir="usr/local"
 package_asset_dir="${cwd}/assets"
-
-package_name="500px-vips"
 package_maintainer="pliu@500px.com"
 package_vendor="500px"
 package_url="http://www.vips.ecs.soton.ac.uk/index.php"
-package_desc="VIPS. Packaged by mk_vips ${script_rev}"
 package_epoch=1
 package_version="${vips_version}-$(lsb_release --codename --short)3"
-package_deps=(
-    "libxml2 (>= 2.7.4)"
-    "libc6 (>= 2.11)"
-    "libgcc1 (>= 1:4.1.1)"
-    "libglib2.0-0 (>= 2.22.0)"
-    "libstdc++6 (>= 4.6)"
-    "libjpeg-turbo8"
-    "libexif12"
-    "libtiff4"
-    "libfftw3-3"
-    "liblcms2-2 (>= 2.2+git20110628-2)"
-    "libpng12-0 (>= 1.2.13-4)"
-    "libmagickcore4 (>= 8:6.6.9.7)"
-    "libpango1.0-0 (>= 1.14.0)"
-    "libmatio0"
-    "libcfitsio3 (>= 3.060)"
-    "libopenexr6 (>= 1.6.1)"
-)
+
+if [[ ${mode} == "default"]]; then 
+    package_name="500px-vips"
+    package_desc="VIPS. Packaged by mk_vips ${script_rev}"
+    package_deps=(
+        "libxml2 (>= 2.7.4)"
+        "libc6 (>= 2.11)"
+        "libgcc1 (>= 1:4.1.1)"
+        "libglib2.0-0 (>= 2.22.0)"
+        "libstdc++6 (>= 4.6)"
+        "libjpeg-turbo8"
+        "libexif12"
+        "libtiff4"
+        "libfftw3-3"
+        "liblcms2-2 (>= 2.2+git20110628-2)"
+        "libpng12-0 (>= 1.2.13-4)"
+        "libmagickcore4 (>= 8:6.6.9.7)"
+        "libpango1.0-0 (>= 1.14.0)"
+        "libmatio0"
+        "libcfitsio3 (>= 3.060)"
+        "libopenexr6 (>= 1.6.1)"
+    )
+elif [[ ${mode} == "dev" ]]; then
+    package_name="500px-vips-dev"
+    package_desc="VIPS dev. Packaged by mk_vips_dev ${script_rev}"
+    package_deps=(
+        "libc6 (>= 2.11)"
+        "libgcc1 (>= 1:4.1.1)"
+        "libstdc++6 (>= 4.6)"
+        "libxml2-dev"
+        "libglib2.0-dev"
+        "gettext"
+        "pkg-config"
+        "zlib1g-dev"
+        "libfreetype6-dev"
+        "libfontconfig1-dev"
+        "libice-dev"
+        "libjpeg-dev"
+        "libexif-gtk-dev"
+        "libtiff4-dev"
+        "libfftw3-dev"
+        "liblcms2-dev"
+        "libpng12-dev"
+        "libmagickcore-dev"
+        "libmagickwand-dev"
+        "libpango1.0-dev"
+        "libmatio-dev"
+        "libcfitsio3-dev"
+        "libopenexr-dev"
+        "python-all-dev"
+        "python-dev" 
+    )
+else
+    die "unknown mode"
+fi
 
 cd ${cwd}
 [[ ! -d ${logdir} ]] && mkdir -p ${logdir}
@@ -122,7 +165,7 @@ gem install fpm --no-ri --no-rdoc --quiet
 # Build project
 log "Building VIPS"
 cd ${cwd}/vips-${vips_version}
-./configure --prefix=${package_deploy_dir} > ${logdir}/configure.log 2>&1
+./configure --prefix=/${package_deploy_dir} > ${logdir}/configure.log 2>&1
 make clean > ${logdir}/makeclean.log 2>&1
 make > ${logdir}/make.log 2>&1
 make install DESTDIR=${vips_build_dir} > ${logdir}/makeinstall.log 2>&1
