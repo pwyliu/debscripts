@@ -50,7 +50,7 @@ logdir="${cwd}/logs"
 script_deps=("build-essential" "rubygems")
 script_rev="$(git log -n 1 --pretty='format:%h')"
 
-vips_build_dir="vips_build"
+vips_build_dir="${cwd}/vips_build"
 vips_download_url="http://www.vips.ecs.soton.ac.uk/supported/${BASH_REMATCH[1]}/vips-${vips_version}.tar.gz"
 vips_deps=(
     "libxml2-dev"
@@ -86,9 +86,9 @@ package_url="http://www.vips.ecs.soton.ac.uk/index.php"
 package_epoch=1
 package_version="${vips_version}-$(lsb_release --codename --short)3"
 
-if [[ ${mode} == "default"]]; then 
+if [[ ${mode} == "default" ]]; then 
     package_name="500px-vips"
-    package_desc="VIPS. Packaged by mk_vips ${script_rev}"
+    package_desc="VIPS. Packaged by mk_vips ${script_rev}."
     package_deps=(
         "libxml2 (>= 2.7.4)"
         "libc6 (>= 2.11)"
@@ -109,7 +109,7 @@ if [[ ${mode} == "default"]]; then
     )
 elif [[ ${mode} == "dev" ]]; then
     package_name="500px-vips-dev"
-    package_desc="VIPS dev. Packaged by mk_vips_dev ${script_rev}"
+    package_desc="VIPS dev. Packaged by mk_vips_dev ${script_rev}."
     package_deps=(
         "libc6 (>= 2.11)"
         "libgcc1 (>= 1:4.1.1)"
@@ -141,11 +141,15 @@ else
     die "unknown mode"
 fi
 
+# clean up
 cd ${cwd}
 [[ ! -d ${logdir} ]] && mkdir -p ${logdir}
 [[ -d ${vips_build_dir} ]] && rm -rf ${vips_build_dir}
 [[ -d ${package_build_dir} ]] && rm -rf ${package_build_dir}
 [[ -d ${package_asset_dir} ]] || die "Asset directory not found."
+
+mkdir -p ${vips_build_dir}
+mkdir -p ${package_build_dir}
 
 # Download and extract tarball
 if [[ ! -d vips-${vips_version} ]]; then
@@ -173,8 +177,7 @@ make install DESTDIR=${vips_build_dir} > ${logdir}/makeinstall.log 2>&1
 # Build deb
 log "Copying files to ${package_build_dir}"
 cd ${cwd}
-mkdir -p ${package_build_dir}/${package_deploy_dir}
-cp -R ${vips_build_dir}/* ${package_build_dir}/${package_deploy_dir}/
+cp -R ${vips_build_dir}/ ${package_build_dir}/
 
 # FPM
 log "Running FPM"
