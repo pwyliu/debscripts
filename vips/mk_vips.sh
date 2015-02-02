@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -eo pipefail
 
 # Generic functions
 function log {
@@ -11,12 +11,35 @@ function die {
     exit 2
 }
 
+function usage_and_exit {
+    printf "Usage: mk_vips -v VIPS_VERSION\n\nExample: mk_vips -v \"7.42.1\"\n"
+    exit 2
+}
+
+# Handle args and sanity check
+[[ $1 ]] || usage_and_exit
+while getopts "v:" OPTION
+do
+    case ${OPTION} in
+        v) vips_version=$OPTARG;;
+        ?) usage_and_exit;;
+    esac
+done
+[[ ${vips_version} ]] || usage_and_exit
+
+vre='^(.*[0-9])\..*([0-9])\..*([0-9])$'
+
+[[ ${vips_version} =~ ${vre} ]] || die "VIPS version string not valid."
+[[ "$EUID" -eq 0 ]] || die "This script must be run as root."
+
+# TEMP - trusty isn't tested yet
+[[ $(lsb_release --codename --short) == "precise" ]] || die "This script is only supported on Ubuntu 12.04"
+
 # Setup
 cwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 logdir="${cwd}/logs"
 script_deps=("build-essential" "rubygems")
 
-vips_version="7.42.1"
 vips_build_dir="vips_build"
 vips_download_url="http://www.vips.ecs.soton.ac.uk/supported/current/vips-${vips_version}.tar.gz"
 vips_deps=(
@@ -73,18 +96,6 @@ package_deps=(
     "libcfitsio3 (>= 3.060)"
     "libopenexr6 (>= 1.6.1)"
 )
-
-# TEMP - trusty isn't tested yet
-if [[ $(lsb_release --codename --short) != "precise" ]]; then
-    echo "Only supported on precise"
-    exit
-fi
-
-# Checks
-if [[ "$EUID" -ne 0 ]]; then 
-    echo "Please run as root"
-    exit
-fi
 
 cd ${cwd}
 [[ ! -d ${logdir} ]] && mkdir -p ${logdir}
