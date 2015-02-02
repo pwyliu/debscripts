@@ -78,7 +78,7 @@ package_vendor="500px"
 package_url="http://www.vips.ecs.soton.ac.uk/index.php"
 package_desc="VIPS. Packaged by mk_vips ${script_rev}"
 package_epoch=1
-package_version="${vips_version}-$(lsb_release --codename --short)1"
+package_version="${vips_version}-$(lsb_release --codename --short)3"
 package_deps=(
     "libxml2 (>= 2.7.4)"
     "libc6 (>= 2.11)"
@@ -122,10 +122,10 @@ gem install fpm --no-ri --no-rdoc --quiet
 # Build project
 log "Building VIPS"
 cd ${cwd}/vips-${vips_version}
-./configure --prefix=${cwd}/${vips_build_dir} > ${logdir}/configure.log 2>&1
+./configure --prefix=${package_deploy_dir} > ${logdir}/configure.log 2>&1
 make clean > ${logdir}/makeclean.log 2>&1
 make > ${logdir}/make.log 2>&1
-make install > ${logdir}/makeinstall.log 2>&1
+make install DESTDIR=${vips_build_dir} > ${logdir}/makeinstall.log 2>&1
 
 # Build deb
 log "Copying files to ${package_build_dir}"
