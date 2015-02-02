@@ -39,6 +39,7 @@ vre='^(.*[0-9])\..*([0-9])\..*([0-9])$'
 cwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 logdir="${cwd}/logs"
 script_deps=("build-essential" "rubygems")
+script_rev="$(git log -n 1 --pretty='format:%h')"
 
 vips_build_dir="vips_build"
 vips_download_url="http://www.vips.ecs.soton.ac.uk/supported/current/vips-${vips_version}.tar.gz"
@@ -75,7 +76,7 @@ package_name="500px-vips"
 package_maintainer="pliu@500px.com"
 package_vendor="500px"
 package_url="http://www.vips.ecs.soton.ac.uk/index.php"
-package_desc="VIPS is a free image processing system."
+package_desc="VIPS. Packaged by mk_vips ${script_rev}"
 package_epoch=1
 package_version="${vips_version}-$(lsb_release --codename --short)1"
 package_deps=(
