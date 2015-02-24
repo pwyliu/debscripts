@@ -177,7 +177,7 @@ make install DESTDIR=${vips_build_dir} > ${logdir}/makeinstall.log 2>&1
 # Build deb
 log "Copying files to ${package_build_dir}"
 cd ${cwd}
-cp -R ${vips_build_dir}/ ${package_build_dir}/
+cp -R ${vips_build_dir}/* ${package_build_dir}/
 
 # FPM
 log "Running FPM"
