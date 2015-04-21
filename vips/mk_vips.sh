@@ -12,21 +12,22 @@ function die {
 }
 
 function usage_and_exit {
-    printf "Usage: mk_vips -v VIPS_VERSION [-d dev]\n\nExample: mk_vips -v \"7.42.1\"\n"
+    printf "Usage: mk_vips [-v VIPS_VERSION] [-c VIPS_COMMIT] [-d dev]\n\nExample: mk_vips -v \"7.42.1\"\n"
     exit 2
 }
 
 # Handle args
 [[ $1 ]] || usage_and_exit
-while getopts "v:d:" OPTION
+while getopts "v:c:d:" OPTION
 do
     case ${OPTION} in
         v) vips_version=$OPTARG;;
+				c) vips_commit=$OPTARG;;
         d) mode=$OPTARG;;
         ?) usage_and_exit;;
     esac
 done
-[[ ${vips_version} ]] || usage_and_exit
+[[ ${vips_version} ]] || [[ ${vips_commit} ]] || usage_and_exit
 
 # Check valid mode
 if [[ -z ${mode} ]] || [[ ${mode} == "default" ]]; then
@@ -35,12 +36,12 @@ elif [[ ${mode} != "dev" ]]; then
     die "unknown mode ${mode} specified"
 fi
 
-# Check valid version
-vre='^(.*[0-9]\..*[0-9])\.(.*[0-9])$'
-[[ ${vips_version} =~ ${vre} ]] || die "VIPS version string not valid."
+if [[ ${vips_version} ]]; then
+		# Check valid version
+		vre='^(.*[0-9]\..*[0-9])\.(.*[0-9])$'
+		[[ ${vips_version} =~ ${vre} ]] || die "VIPS version string not valid."
+fi
 
-# Other checks
-[[ "$EUID" -eq 0 ]] || die "This script must be run as root."
 # TEMP - trusty isn't tested yet
 [[ $(lsb_release --codename --short) == "precise" ]] || die "This script is only supported on Ubuntu 12.04"
 
@@ -56,6 +57,10 @@ vips_deps=(
     "libxml2-dev"
     "libglib2.0-dev"
     "gettext"
+		"autoconf"
+		"gtk-doc-tools"
+		"gobject-introspection"
+		"swig"
     "pkg-config"
     "zlib1g-dev"
     "libfreetype6-dev"
@@ -74,7 +79,7 @@ vips_deps=(
     "libcfitsio3-dev"
     "libopenexr-dev"
     "python-all-dev"
-    "python-dev" 
+    "python-dev"
 )
 
 package_build_dir="deb_src"
@@ -84,9 +89,16 @@ package_maintainer="pliu@500px.com"
 package_vendor="500px"
 package_url="http://www.vips.ecs.soton.ac.uk/index.php"
 package_epoch=1
-package_version="${vips_version}-$(lsb_release --codename --short)3"
 
-if [[ ${mode} == "default" ]]; then 
+if [[ ${vips_version} ]]; then
+		package_version="${vips_version}-$(lsb_release --codename --short)3"
+		vips_dir="${cwd}/vips-${vips_version}"
+else
+		package_version="${vips_commit}-$(lsb_release --codename --short)3"
+		vips_dir="${cwd}/libvips"
+fi
+
+if [[ ${mode} == "default" ]]; then
     package_name="500px-vips"
     package_desc="VIPS. Packaged by mk_vips ${script_rev}."
     package_deps=(
@@ -135,7 +147,7 @@ elif [[ ${mode} == "dev" ]]; then
         "libcfitsio3-dev"
         "libopenexr-dev"
         "python-all-dev"
-        "python-dev" 
+        "python-dev"
     )
 else
     die "unknown mode"
@@ -151,27 +163,44 @@ cd ${cwd}
 mkdir -p ${vips_build_dir}
 mkdir -p ${package_build_dir}
 
-# Download and extract tarball
-if [[ ! -d vips-${vips_version} ]]; then
-    log "Downloading ${vips_download_url}"
-    wget ${vips_download_url}
-    tar -xzf vips-${vips_version}.tar.gz > /dev/null
+if [[ ${vips_version} ]]; then
+		# Download and extract tarball
+		if [[ ! -d vips-${vips_version} ]]; then
+				log "Downloading ${vips_download_url}"
+				wget ${vips_download_url}
+				tar -xzf vips-${vips_version}.tar.gz > /dev/null
+		fi
+else
+		if [[ ! -d libvips ]]; then
+				log "Cloning libvips at ${vips_commit}."
+				git clone git@github.com:jcupitt/libvips.git
+		fi
+		cd libvips
+		git checkout "${vips_commit}"
+		if [ $? -ne 0 ]; then
+				die "Failed to check out commit ${vips_commit}."
+		fi
+		cd ..
 fi
 
 # Install deps
 log "Installing build dependencies"
-apt-get install -qq -y "${script_deps[@]}"
-apt-get install -qq -y "${vips_deps[@]}"
+sudo apt-get install -qq -y "${script_deps[@]}"
+sudo apt-get install -qq -y "${vips_deps[@]}"
 
 log "Installing FPM"
-gem install fpm --no-ri --no-rdoc --quiet
+sudo gem install fpm --no-ri --no-rdoc --quiet
 
 # Build project
 log "Building VIPS"
-cd ${cwd}/vips-${vips_version}
+cd "${vips_dir}"
+if [[ ! ${vips_version} ]]; then
+		./bootstrap.sh
+fi
+
 ./configure --prefix=/${package_deploy_dir} > ${logdir}/configure.log 2>&1
 make clean > ${logdir}/makeclean.log 2>&1
-make > ${logdir}/make.log 2>&1
+make -j `grep -c 'processor' /proc/cpuinfo` > ${logdir}/make.log 2>&1
 make install DESTDIR=${vips_build_dir} > ${logdir}/makeinstall.log 2>&1
 
 # Build deb
