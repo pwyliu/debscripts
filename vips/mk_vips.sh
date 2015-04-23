@@ -61,6 +61,7 @@ vips_deps=(
 		"gtk-doc-tools"
 		"gobject-introspection"
 		"swig"
+		"liborc-0.4-dev"
     "pkg-config"
     "zlib1g-dev"
     "libfreetype6-dev"
@@ -91,10 +92,10 @@ package_url="http://www.vips.ecs.soton.ac.uk/index.php"
 package_epoch=1
 
 if [[ ${vips_version} ]]; then
-		package_version="${vips_version}-$(lsb_release --codename --short)3"
+		package_version="${vips_version}-$(lsb_release --codename --short)3-4"
 		vips_dir="${cwd}/vips-${vips_version}"
 else
-		package_version="${vips_commit}-$(lsb_release --codename --short)3"
+		package_version="`echo ${vips_commit} | cut -c1-7`-$(lsb_release --codename --short)3-4"
 		vips_dir="${cwd}/libvips"
 fi
 
@@ -102,6 +103,7 @@ if [[ ${mode} == "default" ]]; then
     package_name="500px-vips"
     package_desc="VIPS. Packaged by mk_vips ${script_rev}."
     package_deps=(
+				"liborc-0.4-0"
         "libxml2 (>= 2.7.4)"
         "libc6 (>= 2.11)"
         "libgcc1 (>= 1:4.1.1)"
@@ -129,6 +131,11 @@ elif [[ ${mode} == "dev" ]]; then
         "libxml2-dev"
         "libglib2.0-dev"
         "gettext"
+				"autoconf"
+				"gtk-doc-tools"
+				"gobject-introspection"
+				"swig"
+				"liborc-0.4-dev"
         "pkg-config"
         "zlib1g-dev"
         "libfreetype6-dev"
